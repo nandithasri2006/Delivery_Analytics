@@ -2,85 +2,109 @@
 
 ## Problem Statement
 
-Build a FastAPI application that tracks email delivery events using provider webhooks. Store delivery events in a SQLite database and expose an API to summarize delivery analytics.
+Develop a RESTful API that receives email delivery webhook events from an email service provider, stores them in a SQLite database, prevents duplicate events, validates incoming requests, and provides analytics to measure notification effectiveness.
+
+The API tracks the following email lifecycle events:
+
+* Sent
+* Delivered
+* Opened
+* Clicked
+* Bounced
+
+It also calculates delivery performance metrics such as delivery rate, open rate, click rate, and bounce rate.
 
 ---
 
-## Objective
+# Features
 
-Measure notification effectiveness and diagnose delivery issues by tracking:
-
-- Email Sent
-- Delivered
-- Opened
-- Clicked
-- Bounced
-
----
-
-## Technologies Used
-
-- Python 3.12
-- FastAPI
-- SQLAlchemy
-- SQLite
-- Uvicorn
-- Pydantic
+* FastAPI-based REST API
+* Receive email webhook events
+* Store events in SQLite database
+* SQLAlchemy ORM integration
+* Pydantic request validation
+* Duplicate event detection using `event_id`
+* Analytics generation
+* Delivery/Open/Click/Bounce rate calculation
+* Proper HTTP status code handling
+* Interactive Swagger documentation
 
 ---
 
-## Project Structure
+# Technologies Used
 
+| Technology   | Purpose                      |
+| ------------ | ---------------------------- |
+| Python 3.12  | Backend programming language |
+| FastAPI      | REST API development         |
+| SQLite       | Database                     |
+| SQLAlchemy   | ORM                          |
+| Pydantic     | Request validation           |
+| Uvicorn      | ASGI server                  |
+| Git & GitHub | Version control              |
+| Swagger UI   | API testing                  |
+
+---
+
+# Project Structure
+
+```text
+Delivery_Analytics/
+│
+├── app.py
+├── crud.py
+├── database.py
+├── models.py
+├── schemas.py
+├── generate_data.py
+├── requirements.txt
+├── README.md
+└── delivery.db
 ```
-delivery_analytics/
-│── app.py
-│── database.py
-│── models.py
-│── schemas.py
-│── crud.py
-│── requirements.txt
-│── README.md
-│── delivery.db
-```
 
 ---
 
-## Installation Guide
+# Installation
 
-### Clone the repository
+## 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/delivery-analytics.git
-cd delivery-analytics
+git clone https://github.com/nandithasri2006/Delivery_Analytics.git
 ```
 
-### Create Virtual Environment
+## 2. Move into the project
+
+```bash
+cd Delivery_Analytics
+```
+
+## 3. Create a virtual environment
 
 ```bash
 python -m venv venv
 ```
 
-### Activate Virtual Environment
+## 4. Activate the virtual environment
 
-Windows
+### Windows
 
 ```bash
 venv\Scripts\activate
 ```
 
-Linux/Mac
+### Linux / macOS
 
 ```bash
 source venv/bin/activate
 ```
 
-### Install Dependencies
+## 5. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Run the Server
+## 6. Run the application
 
 ```bash
 python -m uvicorn app:app --reload
@@ -88,30 +112,38 @@ python -m uvicorn app:app --reload
 
 ---
 
-## API Endpoints
+# API Endpoints
 
-### GET /
+## GET /
 
-Returns welcome message.
+Returns a welcome message.
+
+### Response
+
+```json
+{
+  "message": "Welcome to Delivery Analytics API"
+}
+```
 
 ---
 
-### POST /webhook
+## POST /webhook
 
-Stores an email event.
+Stores an email webhook event.
 
-Sample Request
+### Sample Request
 
 ```json
 {
   "event_id": "1001",
   "email": "abc@gmail.com",
   "event": "delivered",
-  "timestamp": "2026-06-26 10:00"
+  "timestamp": "2026-06-26 10:00:00"
 }
 ```
 
-Sample Response
+### Success Response
 
 ```json
 {
@@ -121,100 +153,123 @@ Sample Response
 
 ---
 
-### GET /analytics
+## GET /analytics
 
-Returns delivery analytics.
+Returns email delivery analytics.
 
-Sample Response
-
-```json
-{
-  "email_sent": 1,
-  "delivered": 1,
-  "opened": 1,
-  "clicked": 1,
-  "bounced": 1,
-  "total_events": 5
-}
-```
-
----
-
-## Testing
-
-1. Start the FastAPI server.
-
-2. Open
-
-```
-http://127.0.0.1:8000/docs
-```
-
-3. Use POST `/webhook` to add events.
-
-4. Call GET `/analytics`.
-
-5. Verify the counts returned by the API.
-
----
-
-## Features
-
-- Receive webhook events
-- Store events in SQLite
-- Validate event types
-- Prevent duplicate webhook events
-- Analytics summary API
-- Automatic Swagger documentation
-
----
-
-## Edge Cases Handled
-
-- Duplicate Event ID
-- Invalid Event Type
-- Missing Required Fields
-- Empty Database
-- Invalid JSON Request
-
----
-
-## Sample Output
+### Sample Response
 
 ```json
 {
   "email_sent": 200,
   "delivered": 195,
+  "delivery_rate": "97.5%",
   "opened": 140,
+  "open_rate": "71.79%",
   "clicked": 80,
-  "bounced": 5
+  "click_rate": "57.14%",
+  "bounced": 5,
+  "bounce_rate": "2.5%"
 }
+```
+
+> **Note:** The above response was generated after inserting a sample dataset using `generate_data.py`, containing:
+>
+> * 200 Sent events
+> * 195 Delivered events
+> * 140 Opened events
+> * 80 Clicked events
+> * 5 Bounced events
+
+---
+
+# Architecture Workflow
+
+```text
+Email Provider
+      │
+      ▼
+POST /webhook
+      │
+      ▼
+Validate Request
+      │
+      ▼
+Duplicate Check
+      │
+      ▼
+Store in SQLite
+      │
+      ▼
+GET /analytics
+      │
+      ▼
+Calculate Counts & Rates
+      │
+      ▼
+JSON Response
 ```
 
 ---
 
-## Acceptance Criteria
+# Edge Cases Handled
 
-✔ Receive webhook events successfully
-
-✔ Store events in SQLite
-
-✔ Return analytics summary
-
-✔ Handle duplicate events
-
-✔ Handle invalid event types
-
-✔ Tested using Swagger/Postman
-
-✔ Ready for GitHub submission
+| Scenario                | HTTP Status              |
+| ----------------------- | ------------------------ |
+| Valid webhook event     | 200 OK                   |
+| Duplicate event         | 400 Bad Request          |
+| Invalid event type      | 400 Bad Request          |
+| Missing required fields | 422 Unprocessable Entity |
 
 ---
 
-## Future Improvements
+# Testing
 
-- Integrate SendGrid or AWS SES webhooks
-- Add authentication
-- Add date-wise analytics
-- Dashboard using Streamlit or React
-- Export analytics as CSV
+The application was tested using:
+
+* Swagger UI
+* FastAPI Interactive Documentation
+* Manual API Testing
+
+Verified scenarios include:
+
+* Successful webhook insertion
+* Duplicate event detection
+* Invalid event type handling
+* Missing required field validation
+* Analytics generation
+
+---
+
+# Challenges Addressed
+
+* Duplicate webhook event prevention
+* Invalid event validation
+* Division-by-zero handling
+* Virtual environment package configuration
+
+---
+
+# Future Enhancements
+
+* Campaign-wise analytics
+* Recipient-level tracking
+* Time-based analytics
+* Email format validation
+* Automated testing using `pytest`
+* Docker deployment
+* PostgreSQL support
+
+---
+
+# GitHub Repository
+
+https://github.com/nandithasri2006/Delivery_Analytics
+
+---
+
+# Author
+
+**Nandhitha Maraka**
+
+Internship Project – Delivery Analytics API
